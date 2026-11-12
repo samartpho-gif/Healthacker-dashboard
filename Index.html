@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthacker - Personal Health Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-green: #10b981;
+            --accent-green-light: #d1fae5;
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #dbeafe;
+            --accent-purple: #8b5cf6;
+            --accent-purple-light: #ede9fe;
+            --accent-amber: #f59e0b;
+            --accent-amber-light: #fef3c7;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+        }
+
+        .brand-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .brand-text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 10px 18px;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-badge {
+            background: var(--accent-green-light);
+            color: #065f46;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .profile-info {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .kpi-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value span {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-good { color: #059669; font-weight: 500; }
+        .status-warn { color: #d97706; font-weight: 500; }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 310px;
+            width: 100%;
+        }
+
+        /* Activity List */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+        }
+
+        .activity-date {
+            min-width: 85px;
+        }
+
+        .activity-date .date-num {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-date .day-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .activity-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-run { background: #dcfce7; color: #166534; }
+        .badge-bike { background: #dbeafe; color: #1e40af; }
+        .badge-walk { background: #fef3c7; color: #92400e; }
+        .badge-rest { background: #f1f5f9; color: #64748b; }
+
+        .activity-metrics {
+            display: flex;
+            gap: 14px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .metric-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-low {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        /* Memory JSON Viewer */
+        .memory-section {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 16px;
+            padding: 18px 22px;
+            font-size: 13px;
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .memory-title {
+            font-weight: 600;
+            color: #34d399;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        pre {
+            background: #0f172a;
+            padding: 14px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #93c5fd;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 900px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 500px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .activity-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <div class="brand-logo">H</div>
+                <div class="brand-text">
+                    <h1>Healthacker Dashboard</h1>
+                    <p>รายงานสรุปสุขภาพส่วนบุคคลย้อนหลัง 7 วัน (7 – 13 ก.ย.)</p>
+                </div>
+            </div>
+            <div class="user-profile">
+                <span class="profile-badge">Memory Synced</span>
+                <span class="profile-info">น้ำหนักตัว: <strong>61 กก.</strong> | เป้าหมายน้ำ: 1.83–2.14 ลิตร/วัน</span>
+            </div>
+        </header>
+
+        <!-- 4 KPI Cards -->
+        <section class="kpi-grid" id="kpi-section"></section>
+
+        <!-- Main Content: Chart + Daily Activity List -->
+        <section class="main-grid">
+            <!-- Chart Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">แนวโน้มชั่วโมงนอน และ ปริมาณการดื่มน้ำ (7 วัน)</div>
+                        <div class="card-subtitle">เปรียบเทียบกับเกณฑ์แนะนำ (นอน 7–9 ชม. | ดื่มน้ำ ~1.9 ลิตร)</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="healthTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Daily Activities List -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">รายการกิจกรรมแต่ละวัน</div>
+                        <div class="card-subtitle">บันทึกการออกกำลังกาย การนอน และน้ำดื่มรายวัน</div>
+                    </div>
+                </div>
+                <div class="activity-list" id="activity-list"></div>
+            </div>
+        </section>
+
+        <!-- JSON Memory Store -->
+        <section class="memory-section">
+            <div class="memory-header" onclick="toggleJson()">
+                <div class="memory-title">
+                    <span>🗄️ Health Memory Store (JSON Data)</span>
+                </div>
+                <span style="font-size: 12px; color: #94a3b8;" id="toggle-text">คลิกเพื่อซ่อน/แสดงโครงสร้างข้อมูล</span>
+            </div>
+            <pre id="json-display"></pre>
+        </section>
+    </div>
+
+    <script>
+        // 1. Memory JSON Data
+        const healthMemory = {
+            user_profile: {
+                weight_kg: 61,
+                water_target_liters: 1.9,
+                sleep_target_hours: 7.5,
+                weekly_exercise_goal_mins: 150
+            },
+            daily_logs: [
+                { date: "7 ก.ย.", day: "จันทร์", activity: "วิ่ง", duration_min: 30, sleep_hr: 7.2, water_l: 1.8 },
+                { date: "8 ก.ย.", day: "อังคาร", activity: "ปั่นจักรยาน", duration_min: 45, sleep_hr: 6.5, water_l: 1.5 },
+                { date: "9 ก.ย.", day: "พุธ", activity: "ปั่นจักรยาน", duration_min: 59, sleep_hr: 4.0, water_l: 2.0 },
+                { date: "10 ก.ย.", day: "พฤหัสบดี", activity: "เดิน", duration_min: 45, sleep_hr: 8.0, water_l: 1.5 },
+                { date: "11 ก.ย.", day: "ศุกร์", activity: "พักผ่อน", duration_min: 0, sleep_hr: 6.5, water_l: 1.5 },
+                { date: "12 ก.ย.", day: "เสาร์", activity: "วิ่ง", duration_min: 20, sleep_hr: 7.0, water_l: 1.5 },
+                { date: "13 ก.ย.", day: "อาทิตย์", activity: "ปั่นจักรยาน", duration_min: 40, sleep_hr: 4.0, water_l: 1.5 }
+            ]
+        };
+
+        // 2. Calculate KPIs dynamically from JSON
+        const logs = healthMemory.daily_logs;
+        const activeDays = logs.filter(d => d.duration_min > 0).length;
+        const totalMinutes = logs.reduce((sum, d) => sum + d.duration_min, 0);
+        const avgSleep = (logs.reduce((sum, d) => sum + d.sleep_hr, 0) / logs.length).toFixed(2);
+        const avgWater = (logs.reduce((sum, d) => sum + d.water_l, 0) / logs.length).toFixed(2);
+
+        // Render KPI Cards
+        const kpiData = [
+            {
+                title: "จำนวนวันออกกำลังกาย",
+                value: `${activeDays}`,
+                unit: "/ 7 วัน",
+                icon: "🏃‍♂️",
+                iconBg: "#d1fae5",
+                status: "ยอดเยี่ยม! ออกกำลังกายสม่ำเสมอ",
+                statusClass: "status-good"
+            },
+            {
+                title: "เวลาออกกำลังกายรวม",
+                value: `${totalMinutes}`,
+                unit: "นาที",
+                icon: "⏱️",
+                iconBg: "#dbeafe",
+                status: `เกินเกณฑ์ 150 นาที/สัปดาห์ (+${totalMinutes - 150} นาที)`,
+                statusClass: "status-good"
+            },
+            {
+                title: "ชั่วโมงนอนเฉลี่ย",
+                value: `${avgSleep}`,
+                unit: "ชม./คืน",
+                icon: "😴",
+                iconBg: "#ede9fe",
+                status: "ต่ำกว่าเกณฑ์ 7–9 ชม. (มีวันนอนน้อย 4 ชม.)",
+                statusClass: "status-warn"
+            },
+            {
+                title: "ปริมาณน้ำดื่มเฉลี่ย",
+                value: `${avgWater}`,
+                unit: "ลิตร/วัน",
+                icon: "💧",
+                iconBg: "#fef3c7",
+                status: "ควรเพิ่มอีก ~0.3 ลิตร/วัน (เกณฑ์ 1.83+ ลิตร)",
+                statusClass: "status-warn"
+            }
+        ];
+
+        const kpiSection = document.getElementById('kpi-section');
+        kpiData.forEach(kpi => {
+            kpiSection.innerHTML += `
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-title">${kpi.title}</span>
+                        <div class="kpi-icon" style="background: ${kpi.iconBg};">${kpi.icon}</div>
+                    </div>
+                    <div class="kpi-value">${kpi.value} <span>${kpi.unit}</span></div>
+                    <div class="kpi-sub ${kpi.statusClass}">${kpi.status}</div>
+                </div>
+            `;
+        });
+
+        // 3. Render Daily Activity List
+        const activityList = document.getElementById('activity-list');
+        logs.forEach(item => {
+            let badgeClass = 'badge-rest';
+            let icon = '🛋️';
+            let activityText = 'วันพักผ่อน';
+
+            if (item.activity === 'วิ่ง') {
+                badgeClass = 'badge-run';
+                icon = '🏃';
+                activityText = `วิ่ง ${item.duration_min} นาที`;
+            } else if (item.activity === 'ปั่นจักรยาน') {
+                badgeClass = 'badge-bike';
+                icon = '🚴';
+                activityText = `ปั่นจักรยาน ${item.duration_min} นาที`;
+            } else if (item.activity === 'เดิน') {
+                badgeClass = 'badge-walk';
+                icon = '🚶';
+                activityText = `เดิน ${item.duration_min} นาที`;
+            }
+
+            const sleepClass = item.sleep_hr < 6 ? 'metric-low' : '';
+            const waterClass = item.water_l < 1.8 ? 'metric-low' : '';
+
+            activityList.innerHTML += `
+                <div class="activity-item">
+                    <div class="activity-date">
+                        <div class="date-num">${item.date}</div>
+                        <div class="day-name">วัน${item.day}</div>
+                    </div>
+                    <div>
+                        <span class="activity-badge ${badgeClass}">${icon} ${activityText}</span>
+                    </div>
+                    <div class="activity-metrics">
+                        <span class="metric-pill ${sleepClass}" title="ชั่วโมงนอน">😴 ${item.sleep_hr} ชม.</span>
+                        <span class="metric-pill ${waterClass}" title="ปริมาณน้ำดื่ม">💧 ${item.water_l.toFixed(1)} ล.</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        // 4. Render Chart.js (Sleep & Water Trend)
+        const ctx = document.getElementById('healthTrendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: logs.map(d => `${d.date} (${d.day.slice(0, 2)}.)`),
+                datasets: [
+                    {
+                        label: 'ชั่วโมงนอน (ชม.)',
+                        data: logs.map(d => d.sleep_hr),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.12)',
+                        borderWidth: 3,
+                        pointBackgroundColor: logs.map(d => d.sleep_hr < 6 ? '#ef4444' : '#8b5cf6'),
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.3,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'ปริมาณน้ำดื่ม (ลิตร)',
+                        data: logs.map(d => d.water_l),
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#0ea5e9',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 16,
+                            font: { family: 'Prompt', size: 13 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { family: 'Prompt', size: 13 },
+                        bodyFont: { family: 'Prompt', size: 13 },
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Prompt', size: 12 } }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'ชั่วโมงนอน (ชม.)',
+                            color: '#8b5cf6',
+                            font: { family: 'Prompt', size: 12, weight: '600' }
+                        },
+                        min: 0,
+                        max: 10,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { family: 'Prompt', size: 12 } }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'ปริมาณน้ำ (ลิตร)',
+                            color: '#0ea5e9',
+                            font: { family: 'Prompt', size: 12, weight: '600' }
+                        },
+                        min: 0,
+                        max: 3.0,
+                        grid: { drawOnChartArea: false },
+                        ticks: { font: { family: 'Prompt', size: 12 } }
+                    }
+                }
+            }
+        });
+
+        // 5. Display JSON Memory
+        document.getElementById('json-display').textContent = JSON.stringify(healthMemory, null, 2);
+
+        function toggleJson() {
+            const pre = document.getElementById('json-display');
+            pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
